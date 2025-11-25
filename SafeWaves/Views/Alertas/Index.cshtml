@@ -1,0 +1,63 @@
+﻿@model IEnumerable<SafeWaves.Models.Alerta>
+
+@{
+    ViewData["Title"] = "Alertas em tempo real";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- Tabela de alertas -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Data/Hora</th>
+            <th>Tipo</th>
+            <th>Mensagem</th>
+            <th>Resolvido</th>
+            <th>Usuário</th>
+        </tr>
+    </thead>
+    <tbody id="alertasTable">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.DataHora.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td>@item.Tipo</td>
+                <td>@item.Mensagem</td>
+                <td>@item.Resolvido</td>
+                <td>@item.Usuario?.Id ?? 0</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Script do SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/alertahub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("ReceberAlerta", (alerta) => {
+        const table = document.getElementById("alertasTable");
+        const row = table.insertRow(0);
+
+        const cellDataHora = row.insertCell(0);
+        const cellTipo = row.insertCell(1);
+        const cellMensagem = row.insertCell(2);
+        const cellResolvido = row.insertCell(3);
+        const cellUsuario = row.insertCell(4);
+
+        const dataHora = new Date(alerta.dataHora);
+        cellDataHora.innerText = dataHora.toLocaleString();
+        cellTipo.innerText = alerta.tipo;
+        cellMensagem.innerText = alerta.mensagem;
+        cellResolvido.innerText = "False";
+        cellUsuario.innerText = "0";
+    });
+
+    connection.start()
+        .then(() => console.log("Conectado ao SignalR!"))
+        .catch(err => console.error("Erro ao conectar ao SignalR: ", err));
+</script>
