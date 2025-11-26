@@ -21,7 +21,7 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.DataHora.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td>@(item.DataHora?.ToString("dd/MM/yyyy HH:mm:ss") ?? "Sem data")</td>
                 <td>@item.Tipo</td>
                 <td>@item.Mensagem</td>
                 <td>@item.Resolvido</td>

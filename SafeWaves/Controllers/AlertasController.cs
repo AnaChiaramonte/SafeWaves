@@ -1,14 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using SafeWaves.Data;
 using SafeWaves.Models;
 using SafeWaves.Hubs;
+using MQTTnet;
+using MQTTnet.Client;
+using Newtonsoft.Json;
 
 namespace SafeWaves.Controllers
 {
@@ -17,55 +18,106 @@ namespace SafeWaves.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<AlertaHub> _hubContext;
 
+        private static bool mqttInitialized = false;
+        private static IMqttClient mqttClient;
+
         public AlertasController(ApplicationDbContext context, IHubContext<AlertaHub> hubContext)
         {
             _context = context;
             _hubContext = hubContext;
+
+            // Evitar inicializar MQTT várias vezes
+            if (!mqttInitialized)
+            {
+                mqttInitialized = true;
+                _ = Task.Run(() => IniciarMQTT());
+            }
         }
 
-        // GET: Alertas
+        // ================================
+        // GET: Alertas (Página)
+        // ================================
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Alertas.Include(a => a.Usuario);
-            return View(await applicationDbContext.ToListAsync());
+            var alertas = _context.Alertas.Include(a => a.Usuario);
+            return View(await alertas.ToListAsync());
         }
 
-        // =====================================
-        // Endpoint para receber alertas do ESP32/Wokwi
-        // =====================================
-        [HttpPost]
-        [Route("api/alertas/novo")]
-        public async Task<IActionResult> ReceberAlerta([FromBody] AlertaDto alertaDto)
+        // ================================
+        // MQTT → Recebe alertas do ESP32
+        // ================================
+        private async Task IniciarMQTT()
         {
-            if (alertaDto == null) return BadRequest();
-
-            // Salvar no banco
-            var alerta = new Alerta
+            try
             {
-                DataHora = DateTime.Now,
-                Tipo = "Wokwi",
-                Mensagem = alertaDto.Mensagem,
-                Resolvido = false,
-                UsuarioId = 0
-            };
-            _context.Alertas.Add(alerta);
-            await _context.SaveChangesAsync();
+                var factory = new MqttFactory();
+                mqttClient = factory.CreateMqttClient();
 
-            // Enviar para todos os clientes conectados via SignalR
-            await _hubContext.Clients.All.SendAsync("ReceberAlerta", new
+                var options = new MqttClientOptionsBuilder()
+                    .WithTcpServer("broker.hivemq.com", 1883)
+                    .WithClientId("SafeWavesServidor")
+                    .WithCleanSession()
+                    .Build();
+
+                mqttClient.ApplicationMessageReceivedAsync += async e =>
+                {
+                    try
+                    {
+                        string payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+
+                        Console.WriteLine("MQTT recebido → " + payload);
+
+                        // O ESP32 envia JSON
+                        var alertaMQTT = JsonConvert.DeserializeObject<AlertaMQTT>(payload);
+
+                        if (alertaMQTT == null)
+                            return;
+
+                        // SALVAR NO BANCO
+                        var alerta = new Alerta
+                        {
+                            DataHora = DateTime.Now,
+                            Tipo = alertaMQTT.tipo,
+                            Mensagem = alertaMQTT.mensagem,
+                            Resolvido = false,
+                            UsuarioId = 0
+                        };
+
+                        _context.Alertas.Add(alerta);
+                        await _context.SaveChangesAsync();
+
+                        // ENVIAR PARA OS CLIENTES VIA SIGNALR
+                        await _hubContext.Clients.All.SendAsync("ReceberAlerta", new
+                        {
+                            dataHora = alerta.DataHora,
+                            tipo = alerta.Tipo,
+                            mensagem = alerta.Mensagem
+                        });
+
+                        Console.WriteLine("Alerta salvo + enviado via SignalR");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Erro ao processar MQTT: " + ex.Message);
+                    }
+                };
+
+                await mqttClient.ConnectAsync(options);
+                await mqttClient.SubscribeAsync("SafeWavesSenai790/alerta");
+
+                Console.WriteLine("Servidor conectado ao MQTT e ouvindo alertas...");
+            }
+            catch (Exception ex)
             {
-                dataHora = alerta.DataHora,
-                tipo = alerta.Tipo,
-                mensagem = alerta.Mensagem
-            });
-
-            return Ok(new { status = "Alerta recebido e enviado!" });
+                Console.WriteLine("Erro MQTT: " + ex.Message);
+            }
         }
     }
 
-    // DTO para receber dados do ESP32/Wokwi
-    public class AlertaDto
+    // Mapeia o JSON enviado pelo ESP32:
+    public class AlertaMQTT
     {
-        public string Mensagem { get; set; }
+        public string tipo { get; set; }
+        public string mensagem { get; set; }
     }
 }
