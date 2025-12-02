@@ -5,59 +5,115 @@
 }
 
 <h1>@ViewData["Title"]</h1>
+<div class="container">
+    <h1 class="text-center">Dashboard IoT - MQTT</h1>
 
-<!-- Tabela de alertas -->
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Data/Hora</th>
-            <th>Tipo</th>
-            <th>Mensagem</th>
-            <th>Resolvido</th>
-            <th>Usuário</th>
-        </tr>
-    </thead>
-    <tbody id="alertasTable">
-        @foreach (var item in Model)
-        {
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Última Leitura do Sensor
+                </div>
+                <div class="card-body">
+                    <!-- Mostra a última mensagem formatada -->
+                    <p id="lastPayload">Aguardando dados...</p>
+                    <small id="lastTimestamp"></small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Status da Conexão
+                </div>
+                <div class="card-body">
+                    <!-- Status do SignalR -->
+                    <p id="connectionStatus">Conectando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mt-4">Histórico de Recebimento</h2>
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@(item.DataHora?.ToString("dd/MM/yyyy HH:mm:ss") ?? "Sem data")</td>
-                <td>@item.Tipo</td>
-                <td>@item.Mensagem</td>
-                <td>@item.Resolvido</td>
-                <td>@item.Usuario?.Id ?? 0</td>
+                <th>Data/Hora</th>
+                <th>Tópico</th>
+                <th>Payload</th>
             </tr>
+
+        </thead>
+        <tbody id="historyTable">
+            <!-- Linhas inseridas dinamicamente -->
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <!-- Cliente JavaScript do SignalR (use o arquivo local instalado via LibMan/NPM) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const statusEl = document.getElementById('connectionStatus');
+        const lastPayloadEl = document.getElementById('lastPayload');
+        const lastTsEl = document.getElementById('lastTimestamp');
+        const table = document.getElementById('historyTable');
+
+        // Cria a conexão com o hub em /sensorHub
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/alertahub")       // Deve bater com app.MapHub<SensorHub>("/sensorHub")
+            .withAutomaticReconnect()    // Reconecta automaticamente em caso de queda
+            .build();
+
+        // Formata o JSON do ESP32 em um texto amigável
+              function formatPayload(payload) {
+            try {
+                const obj = JSON.parse(payload);
+
+                if (obj.tipo && obj.mensagem) {
+                    return `⚠️ [${obj.tipo.toUpperCase()}] ${obj.mensagem}`;
+                }
+
+                return JSON.stringify(obj);
+            } catch {
+                return payload;
+            }
         }
-    </tbody>
-</table>
 
-<!-- Script do SignalR -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-<script>
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/alertahub")
-        .withAutomaticReconnect()
-        .build();
 
-    connection.on("ReceberAlerta", (alerta) => {
-        const table = document.getElementById("alertasTable");
-        const row = table.insertRow(0);
+        // Insere uma linha no topo da tabela e limita a 10 itens
+        function addRow(ts, topic, payload) {
+            const row = table.insertRow(0);
+            row.insertCell(0).innerText = new Date(ts).toLocaleString();
+            row.insertCell(1).innerText = topic;
+            row.insertCell(2).innerText = formatPayload(payload);
 
-        const cellDataHora = row.insertCell(0);
-        const cellTipo = row.insertCell(1);
-        const cellMensagem = row.insertCell(2);
-        const cellResolvido = row.insertCell(3);
-        const cellUsuario = row.insertCell(4);
+            while (table.rows.length > 10) table.deleteRow(table.rows.length - 1);
+        }
 
-        const dataHora = new Date(alerta.dataHora);
-        cellDataHora.innerText = dataHora.toLocaleString();
-        cellTipo.innerText = alerta.tipo;
-        cellMensagem.innerText = alerta.mensagem;
-        cellResolvido.innerText = "False";
-        cellUsuario.innerText = "0";
-    });
+        // Handler chamado quando o servidor envia "ReceiveSensorData"
+        connection.on("ReceiveSensorData", function (data) {
+            lastPayloadEl.innerText = formatPayload(data.payload);
+            lastTsEl.innerText = new Date(data.timestamp).toLocaleString();
+            addRow(data.timestamp, data.topic, data.payload);
+        });
 
-    connection.start()
-        .then(() => console.log("Conectado ao SignalR!"))
-        .catch(err => console.error("Erro ao conectar ao SignalR: ", err));
-</script>
+        // Inicia a conexão com o hub
+        async function start() {
+            try {
+                await connection.start();
+                statusEl.innerText = "Conectado";
+            } catch (err) {
+                statusEl.innerText = "Erro de conexão. Tentando novamente...";
+                setTimeout(start, 3000);
+            }
+        }
+
+        // Feedback visual de reconexão
+        connection.onreconnecting(() => statusEl.innerText = "Reconectando...");
+        connection.onreconnected(() => statusEl.innerText = "Conectado");
+        connection.onclose(() => statusEl.innerText = "Desconectado. Tentando reconectar...");
+
+        start();
+    </script>
+}

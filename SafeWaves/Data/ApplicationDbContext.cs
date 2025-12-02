@@ -21,6 +21,7 @@ namespace SafeWaves.Data
         public DbSet<Movimentacao> Movimentacoes { get; set; }
 
 
+
     }
 }
 

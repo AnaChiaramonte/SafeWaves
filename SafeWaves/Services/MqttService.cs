@@ -1,84 +1,103 @@
-﻿using MQTTnet;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using MQTTnet;
 using MQTTnet.Client;
-using System.Text;
-using System.Text.Json;
-using SafeWaves.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using SafeWaves.Models;
+using System.Text; // Para decodificar o payload
+using System.Threading;
+using System.Threading.Tasks;
+using MQttIoT.Models;
 
-namespace SafeWaves.Services
+namespace MQttIoT.Services
 {
-    public class MqttService
+    public class MqttService : BackgroundService
     {
-        private readonly ApplicationDbContext _context;
-        private IMqttClient _client;
+        private readonly IConfiguration _configuration;
+        private readonly IHubContext<MQttIoT.Hubs.AlertaHub> _hubContext;
+        private IMqttClient? _mqttClient;
+        private readonly List<SensorData> _sensorHistory = new();
+        private readonly object _historyLock = new();
 
-        private readonly string _broker = "broker.hivemq.com";
-        private readonly int _port = 1883;
-        private readonly string _topic = "SafeWavesSenai790/alerta";
-
-        public MqttService(ApplicationDbContext context)
+        public MqttService(IConfiguration configuration, IHubContext<MQttIoT.Hubs.AlertaHub> hubContext)
         {
-            _context = context;
+            _configuration = configuration;
+            _hubContext = hubContext;
         }
 
-        public async Task StartAsync()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var factory = new MqttFactory();
-            _client = factory.CreateMqttClient();
+            _mqttClient = factory.CreateMqttClient();
 
-            // CONFIGURAÇÃO (MQTTnet 4.x usa Create options)
+            // Evento de recebimento de mensagem MQTT
+            _mqttClient.ApplicationMessageReceivedAsync += async e =>
+            {
+                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+
+                var sensorData = new SensorData
+                {
+                    Timestamp = DateTime.Now,
+                    Topic = e.ApplicationMessage.Topic,
+                    Payload = payload
+                };
+
+                lock (_historyLock)
+                {
+                    _sensorHistory.Add(sensorData);
+                    if (_sensorHistory.Count > 100)
+                        _sensorHistory.RemoveAt(0);
+                }
+
+                await _hubContext.Clients.All.SendAsync("ReceiveSensorData", sensorData, cancellationToken: stoppingToken);
+            };
+
             var options = new MqttClientOptionsBuilder()
-                .WithTcpServer(_broker, _port)
+               .WithClientId($"mqttnet-{Guid.NewGuid():N}")
+               .WithCleanSession()
+               .WithWebSocketServer("wss://broker.hivemq.com:8884/mqtt")
+               .Build();
+
+            var topic = _configuration["MQTT:Topic"] ?? "api/alertas/novo";
+            var subscribeOptions = factory.CreateSubscribeOptionsBuilder()
+                .WithTopicFilter(f => f.WithTopic(topic))
                 .Build();
 
-            // EVENTO DE MENSAGEM RECEBIDA (4.x usa "ApplicationMessageReceivedAsync")
-            _client.ApplicationMessageReceivedAsync += async e =>
+            _mqttClient.ConnectedAsync += async _ =>
             {
-                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-
-                Console.WriteLine("📩 MQTT RECEBIDO -> " + payload);
-
-                try
-                {
-                    var dados = JsonSerializer.Deserialize<Movimentacao>(payload);
-
-                    if (dados != null)
-                    {
-                        _context.Movimentacoes.Add(dados);
-                        await _context.SaveChangesAsync();
-                        Console.WriteLine("💾 Movimentação salva no banco!");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("❌ ERRO MQTT: " + ex.Message);
-                }
+                await _mqttClient!.SubscribeAsync(subscribeOptions, stoppingToken);
             };
 
-            // EVENTO DE CONEXÃO (4.x usa ConnectedAsync)
-            _client.ApplicationMessageReceivedAsync += async e =>
+            _mqttClient.DisconnectedAsync += async _ =>
             {
-                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-
-                Console.WriteLine("📩 MQTT RECEBIDO -> " + payload);
-
+                if (stoppingToken.IsCancellationRequested) return;
                 try
                 {
-                    var dados = JsonSerializer.Deserialize<Movimentacao>(payload);
-
-                    if (dados != null)
-                    {
-                        _context.Movimentacoes.Add(dados);
-                        await _context.SaveChangesAsync();
-                        Console.WriteLine("💾 Movimentação salva no banco!");
-                    }
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    await _mqttClient!.ConnectAsync(options, stoppingToken);
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("❌ ERRO MQTT: " + ex.Message);
-                }
+                catch { /* tenta novamente no próximo evento */ }
             };
 
+            await _mqttClient.ConnectAsync(options, stoppingToken);
+        }
+
+        public List<SensorData> GetSensorHistory()
+        {
+            lock (_historyLock)
+                return _sensorHistory.ToList();
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            if (_mqttClient != null)
+            {
+                try { await _mqttClient.DisconnectAsync(); } catch { }
+            }
+            await base.StopAsync(cancellationToken);
         }
     }
 }
