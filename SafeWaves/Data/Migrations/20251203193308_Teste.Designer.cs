@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SafeWaves.Data;
 
@@ -11,9 +12,11 @@ using SafeWaves.Data;
 namespace SafeWaves.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251203193308_Teste")]
+    partial class Teste
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -253,7 +256,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Alertas", (string)null);
+                    b.ToTable("Alertas");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.ContatoEmergencia", b =>
@@ -283,7 +286,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("ContatosEmergencias", (string)null);
+                    b.ToTable("ContatosEmergencias");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.LeituraSensor", b =>
@@ -307,7 +310,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("LeituraSensores", (string)null);
+                    b.ToTable("LeituraSensores");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.Movimentacao", b =>
@@ -329,7 +332,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movimentacoes", (string)null);
+                    b.ToTable("Movimentacoes");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.Sensor", b =>
@@ -359,7 +362,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Sensores", (string)null);
+                    b.ToTable("Sensores");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.Usuario", b =>
@@ -391,7 +394,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.ZonaSegura", b =>
@@ -420,7 +423,7 @@ namespace SafeWaves.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("ZonasSeguras", (string)null);
+                    b.ToTable("ZonasSeguras");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

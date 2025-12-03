@@ -20,8 +20,6 @@ namespace SafeWaves.Data
         public object Leitura { get; internal set; }
         public DbSet<Movimentacao> Movimentacoes { get; set; }
 
-
-
     }
 }
 
