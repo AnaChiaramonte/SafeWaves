@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SafeWaves.Data;
 using MQttIoT.Hubs;
@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Banco de dados
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 
 // 🔥 ADICIONAR IDENTITY (FALTAVA ISSO!)
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
