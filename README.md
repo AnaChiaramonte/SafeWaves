@@ -1,57 +1,63 @@
-SafeWaves MVC
+### 🌊 **SafeWaves MVC**
+Sistema de Monitoramento IoT com ASP.NET Core MVC
 
-Sistema de Monitoramento IoT baseado em ASP.NET Core MVC
+O SafeWaves MVC é um sistema web para monitoramento residencial em tempo real, integrando ASP.NET Core MVC, MQTT e dispositivos IoT como o ESP32.
+Ele coleta alertas de sensores, exibe dados em um dashboard protegido e permite o envio de comandos remotos — como abrir ou fechar portas.
 
-Visão Geral:
 
-O SafeWaves MVC é um sistema web desenvolvido em ASP.NET Core MVC, integrado a dispositivos IoT via MQTT para monitoramento de ambientes residenciais.
-O sistema recebe dados do ESP32, registra alertas e exibe informações em um dashboard restrito a usuários autenticados.
-Também permite o envio de comandos MQTT, como abrir e fechar a porta remotamente.
+### **Funcionalidades**
 
-Funcionalidades Principais:
 
--Autenticação e Controle de Acesso
+🔐 **Autenticação e Controle de Acesso**
 
-Sistema de login e cadastro configurado com ASP.NET Core Identity.
-Acesso ao dashboard permitido apenas para usuários autenticados.
+-Implementado com ASP.NET Core Identity.
+-Apenas usuários autenticados podem acessar o dashboard e o controle da porta.
 
--Integração com MQTT
 
-Recebimento de mensagens enviadas pelo ESP32 por meio do endpoint:
-POST /api/alertas/novo
-Interpretação de sensores: movimento, gás, temperatura, umidade e porta.
-Envio de comandos MQTT para abertura e fechamento da porta.
+📡 **Integração com MQTT**
 
--Dashboard de Monitoramento
+-Recebe dados do ESP32 via MQTTnet.
+-Suporte a sensores de movimento, gás, temperatura, umidade e porta.
+-Envio de comandos MQTT para abertura/fechamento da porta.
 
-Visualização em tempo real dos alertas recebidos.
-Interface simples e objetiva para acompanhamento dos dados.
 
--Histórico de Alertas
+📊 **Dashboard em Tempo Real**
 
-Registro completo dos alertas recebidos.
-Listagem e consulta por tipo, data e conteúdo.
+-Interface intuitiva usando Razor + Bootstrap.
+-Atualização instantânea dos alertas recebidos.
+-Visualização rápida do estado dos sensores.
 
--Integração com Aplicativo Mobile
 
-O sistema envia alertas para o aplicativo React Native por meio da mesma estrutura MQTT.
+🗂️ **Histórico de Alertas**
 
--Controle da Porta
+-Registro completo no banco de dados.
+-Filtros por tipo, data e conteúdo do alerta.
 
-Interface com botões para abrir e fechar a porta.
-Acionamento via publicação MQTT.
 
-Stack de Desenvolvimento:
-Categoria	Tecnologia	Finalidade
-Backend	ASP.NET Core MVC	Regras de negócio, controladores e APIs
-Banco de Dados	SQL Server + EF Core	Persistência de dados
-IoT / MQTT	MQTTnet	Comunicação com o ESP32 via MQTT
-Mobile	React Native + MQTT	Recebimento de alertas no aplicativo
-Autenticação	ASP.NET Core Identity	Login, proteção de rotas e controle de acesso
-Interface Web	Razor + Bootstrap	Dashboard, páginas MVC e estilização
+📱 **Integração com App Mobile**
 
-Instalação e Execução:
--Pré-requisitos:
+-Envio dos mesmos alertas para o aplicativo React Native, também via MQTT.
+
+
+🚪 **Controle da Porta**
+
+-Botões para abrir e fechar a porta remotamente.
+-Ações enviadas via publicação MQTT.
+
+
+### **Stack de Desenvolvimento**
+
+| Categoria        | Tecnologia            | Finalidade                                 |
+|------------------|------------------------|---------------------------------------------|
+| Backend          | ASP.NET Core MVC       | Regras de negócio, APIs e controllers       |
+| Banco de Dados   | SQL Server + EF Core   | Persistência de dados                       |
+| IoT / MQTT       | MQTTnet                | Comunicação com ESP32 via MQTT              |
+| Mobile           | React Native + MQTT    | Recebimento de alertas no aplicativo        |
+| Autenticação     | ASP.NET Core Identity  | Login, roles e controle de acesso           |
+| Interface Web    | Razor + Bootstrap      | Dashboard e páginas web                     |
+
+### **Instalação e Execução**
+📌 **Pré-requisitos**
 
 .NET 9 SDK
 
@@ -59,22 +65,21 @@ SQL Server
 
 Visual Studio 2022 ou VS Code
 
-1. Clonar o repositório
+**1️. Clonar o repositório**
+
 git clone https://github.com/AnaChiaramonte/SafeWaves.git
 
-2. Configuração do Banco de Dados
+**2️. Configurar o Banco de Dados**
 
-No arquivo appsettings.json, configure sua connection string:
+No arquivo appsettings.json, ajuste a conexão:
 
 "ConnectionStrings": {
   "DefaultConnection": "Server=SEU_SERVIDOR;Database=SafeWaves;Trusted_Connection=True;"
 }
 
+**3️. Configurar MQTT**
 
-
-3. Configuração do MQTT
-
-Também no appsettings.json:
+Ainda no appsettings.json:
 
 "MQTT": {
   "Server": "broker.hivemq.com",
@@ -83,17 +88,17 @@ Também no appsettings.json:
 }
 
 
-O ESP32 deve enviar os dados para:
+O ESP32 envia alertas via POST para:
 
-POST /api/alertas/novo
+/api/alertas/novo
 
-4. Executar o Projeto
-dotnet run
+**4️. Executar o Projeto**
 
-Endpoints:
-Recebimento de Alertas do ESP32
-POST /api/alertas/novo
+-dotnet run
 
+Endpoints Principais:
+
+-POST /api/alertas/novo
 
 Exemplo de payload:
 
@@ -103,10 +108,6 @@ Exemplo de payload:
   "valor": "1"
 }
 
-Controle da Porta
-POST /portas/abrir
-POST /portas/fechar
-
-Desenvolvimento
+### 👩‍💻** Desenvolvimento**
 
 Projeto desenvolvido por Ana Clara Chiaramonte Lopes
