@@ -1,51 +1,112 @@
-🛡️ SafeWaves | Monitoramento Inteligente de Idosos
+SafeWaves MVC
 
-📝 Índice
-1. Visão Geral do SafeWaves MVC
-2. Funcionalidades
-3. Stack de Desenvolvimento
-4. Instalação e Execução
+Sistema de Monitoramento IoT baseado em ASP.NET Core MVC
 
----
+Visão Geral:
 
-## 1. Visão Geral do SafeWaves MVC
+O SafeWaves MVC é um sistema web desenvolvido em ASP.NET Core MVC, integrado a dispositivos IoT via MQTT para monitoramento de ambientes residenciais.
+O sistema recebe dados do ESP32, registra alertas e exibe informações em um dashboard restrito a usuários autenticados.
+Também permite o envio de comandos MQTT, como abrir e fechar a porta remotamente.
 
-O **SafeWaves** é um sistema web desenvolvido em ASP.NET Core MVC (com Blazor no frontend) para monitoramento inteligente e não invasivo de idosos em ambientes residenciais. O sistema integra sensores IoT via MQTT, armazena e exibe leituras, e emite alertas em tempo real para familiares e cuidadores utilizando SignalR.
+Funcionalidades Principais:
 
-O objetivo é promover segurança, autonomia e resposta rápida a situações de risco, como quedas ou ausência prolongada de movimento.
+-Autenticação e Controle de Acesso
 
----
+Sistema de login e cadastro configurado com ASP.NET Core Identity.
+Acesso ao dashboard permitido apenas para usuários autenticados.
 
-## 2. Funcionalidades
+-Integração com MQTT
 
-- **Cadastro e Gerenciamento de Usuários:** Idosos, cuidadores, responsáveis e administradores.
-- **Cadastro de Sensores:** Associação de sensores a usuários e monitoramento de ambientes.
-- **Leitura de Sensores:** Visualização de dados históricos e em tempo real.
-- **Zonas Seguras:** Definição de áreas monitoradas e zonas de risco.
-- **Alertas em Tempo Real:** Recebimento de alertas automáticos via MQTT e notificação instantânea para todos os usuários conectados via SignalR.
-- **Contatos de Emergência:** Cadastro de contatos para acionamento rápido em situações críticas.
-- **Interface Web Responsiva:** Navegação intuitiva e acessível.
+Recebimento de mensagens enviadas pelo ESP32 por meio do endpoint:
+POST /api/alertas/novo
+Interpretação de sensores: movimento, gás, temperatura, umidade e porta.
+Envio de comandos MQTT para abertura e fechamento da porta.
 
----
+-Dashboard de Monitoramento
 
-## 3. Stack de Desenvolvimento
+Visualização em tempo real dos alertas recebidos.
+Interface simples e objetiva para acompanhamento dos dados.
 
-| Categoria         | Tecnologia                        | Uso                                 |
-|-------------------|-----------------------------------|-------------------------------------|
-| Backend           | ASP.NET Core MVC                  | Lógica de negócio e APIs            |
-| Frontend          | Blazor Server                     | Interface web interativa            |
-| Banco de Dados    | Entity Framework Core + SQL Server| Persistência de dados               |
-| IoT/MQTT          | MQTTnet                           | Integração com sensores             |
-| Tempo real        | SignalR                           | Notificações instantâneas           |
-| UI                | Bootstrap                         | Estilização                         |
-| Autenticação      | ASP.NET Identity                  | Controle de acesso                  |
+-Histórico de Alertas
 
----
+Registro completo dos alertas recebidos.
+Listagem e consulta por tipo, data e conteúdo.
 
-## 4. Instalação e Execução
+-Integração com Aplicativo Mobile
 
-### 📦 Pré-requisitos
-- .NET 9 SDK
-- SQL Server (ou outro banco de dados relacional)
+O sistema envia alertas para o aplicativo React Native por meio da mesma estrutura MQTT.
 
-### 💻 Instalação
+-Controle da Porta
+
+Interface com botões para abrir e fechar a porta.
+Acionamento via publicação MQTT.
+
+Stack de Desenvolvimento:
+Categoria	Tecnologia	Finalidade
+Backend	ASP.NET Core MVC	Regras de negócio, controladores e APIs
+Banco de Dados	SQL Server + EF Core	Persistência de dados
+IoT / MQTT	MQTTnet	Comunicação com o ESP32 via MQTT
+Mobile	React Native + MQTT	Recebimento de alertas no aplicativo
+Autenticação	ASP.NET Core Identity	Login, proteção de rotas e controle de acesso
+Interface Web	Razor + Bootstrap	Dashboard, páginas MVC e estilização
+
+Instalação e Execução:
+-Pré-requisitos:
+
+.NET 9 SDK
+
+SQL Server
+
+Visual Studio 2022 ou VS Code
+
+1. Clonar o repositório
+git clone https://github.com/AnaChiaramonte/SafeWaves.git
+
+2. Configuração do Banco de Dados
+
+No arquivo appsettings.json, configure sua connection string:
+
+"ConnectionStrings": {
+  "DefaultConnection": "Server=SEU_SERVIDOR;Database=SafeWaves;Trusted_Connection=True;"
+}
+
+
+
+3. Configuração do MQTT
+
+Também no appsettings.json:
+
+"MQTT": {
+  "Server": "broker.hivemq.com",
+  "TopicEntrada": "SafeWaves/alertas",
+  "TopicSaida": "SafeWaves/comandos"
+}
+
+
+O ESP32 deve enviar os dados para:
+
+POST /api/alertas/novo
+
+4. Executar o Projeto
+dotnet run
+
+Endpoints:
+Recebimento de Alertas do ESP32
+POST /api/alertas/novo
+
+
+Exemplo de payload:
+
+{
+  "tipo": "movimento",
+  "mensagem": "Movimento detectado",
+  "valor": "1"
+}
+
+Controle da Porta
+POST /portas/abrir
+POST /portas/fechar
+
+Desenvolvimento
+
+Projeto desenvolvido por Ana Clara Chiaramonte Lopes
