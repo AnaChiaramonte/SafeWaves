@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SafeWaves.Data;
 
 #nullable disable
 
-namespace SafeWaves.Data.Migrations
+namespace SafeWaves.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251209140349_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,12 +170,10 @@ namespace SafeWaves.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -209,12 +210,10 @@ namespace SafeWaves.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -226,11 +225,11 @@ namespace SafeWaves.Data.Migrations
 
             modelBuilder.Entity("SafeWaves.Models.Alerta", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AlertaId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AlertaId"));
 
                     b.Property<DateTime?>("DataHora")
                         .HasColumnType("datetime2");
@@ -249,20 +248,20 @@ namespace SafeWaves.Data.Migrations
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("AlertaId");
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Alertas", (string)null);
+                    b.ToTable("Alertas");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.ContatoEmergencia", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ContatoEmergenciaId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContatoEmergenciaId"));
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -279,20 +278,20 @@ namespace SafeWaves.Data.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("ContatoEmergenciaId");
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("ContatosEmergencias", (string)null);
+                    b.ToTable("ContatosEmergencias");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.LeituraSensor", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("LeituraSensorId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeituraSensorId"));
 
                     b.Property<DateTime>("DataHora")
                         .HasColumnType("datetime2");
@@ -303,20 +302,20 @@ namespace SafeWaves.Data.Migrations
                     b.Property<double>("Valor")
                         .HasColumnType("float");
 
-                    b.HasKey("Id");
+                    b.HasKey("LeituraSensorId");
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("LeituraSensores", (string)null);
+                    b.ToTable("LeituraSensores");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.Movimentacao", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("MovimentacaoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MovimentacaoId"));
 
                     b.Property<DateTime>("DataHora")
                         .HasColumnType("datetime2");
@@ -327,18 +326,18 @@ namespace SafeWaves.Data.Migrations
                     b.Property<double>("Valor")
                         .HasColumnType("float");
 
-                    b.HasKey("Id");
+                    b.HasKey("MovimentacaoId");
 
-                    b.ToTable("Movimentacoes", (string)null);
+                    b.ToTable("Movimentacoes");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.Sensor", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SensorId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SensorId"));
 
                     b.Property<string>("EnderecoMac")
                         .IsRequired()
@@ -355,20 +354,20 @@ namespace SafeWaves.Data.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("SensorId");
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Sensores", (string)null);
+                    b.ToTable("Sensores");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.Usuario", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("UsuarioId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuarioId"));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -389,18 +388,18 @@ namespace SafeWaves.Data.Migrations
                     b.Property<int>("Tipo")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("UsuarioId");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("SafeWaves.Models.ZonaSegura", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ZonaSeguraId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ZonaSeguraId"));
 
                     b.Property<string>("Descricao")
                         .IsRequired()
@@ -416,11 +415,11 @@ namespace SafeWaves.Data.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("ZonaSeguraId");
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("ZonasSeguras", (string)null);
+                    b.ToTable("ZonasSeguras");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

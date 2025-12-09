@@ -2,7 +2,7 @@
 {
     public class LeituraSensor
     {
-        public int Id { get; set; }
+        public int LeituraSensorId { get; set; }
         public int SensorId { get; set; }
         public Sensor Sensor { get; set; }
         public DateTime DataHora { get; set; }

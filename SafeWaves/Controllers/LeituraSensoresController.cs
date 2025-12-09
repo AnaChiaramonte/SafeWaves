@@ -34,7 +34,7 @@ namespace SafeWaves.Controllers
 
             var leituraSensor = await _context.LeituraSensores
                 .Include(l => l.Sensor)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.LeituraSensorId == id);
 
             if (leituraSensor == null)
                 return NotFound();
@@ -83,7 +83,7 @@ namespace SafeWaves.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,SensorId,DataHora,Valor")] LeituraSensor leituraSensor)
         {
-            if (id != leituraSensor.Id)
+            if (id != leituraSensor.LeituraSensorId)
                 return NotFound();
 
             if (ModelState.IsValid)
@@ -95,7 +95,7 @@ namespace SafeWaves.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LeituraSensorExists(leituraSensor.Id))
+                    if (!LeituraSensorExists(leituraSensor.LeituraSensorId))
                         return NotFound();
                     else
                         throw;
@@ -114,7 +114,7 @@ namespace SafeWaves.Controllers
 
             var leituraSensor = await _context.LeituraSensores
                 .Include(l => l.Sensor)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.LeituraSensorId == id);
 
             if (leituraSensor == null)
                 return NotFound();
@@ -138,7 +138,7 @@ namespace SafeWaves.Controllers
 
         private bool LeituraSensorExists(int id)
         {
-            return _context.LeituraSensores.Any(e => e.Id == id);
+            return _context.LeituraSensores.Any(e => e.LeituraSensorId == id);
         }
     }
 }

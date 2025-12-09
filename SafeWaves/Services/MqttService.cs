@@ -6,11 +6,9 @@ using MQTTnet.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SafeWaves.Models;
 using System.Text; // Para decodificar o payload
 using System.Threading;
 using System.Threading.Tasks;
-using MQttIoT.Models;
 
 namespace MQttIoT.Services
 {
@@ -19,7 +17,7 @@ namespace MQttIoT.Services
         private readonly IConfiguration _configuration;
         private readonly IHubContext<MQttIoT.Hubs.AlertaHub> _hubContext;
         private IMqttClient? _mqttClient;
-        private readonly List<SensorData> _sensorHistory = new();
+        private readonly List<MQttIoT.Models.SensorData> _sensorHistory = new();
         private readonly object _historyLock = new();
 
         public MqttService(IConfiguration configuration, IHubContext<MQttIoT.Hubs.AlertaHub> hubContext)
@@ -33,12 +31,11 @@ namespace MQttIoT.Services
             var factory = new MqttFactory();
             _mqttClient = factory.CreateMqttClient();
 
-            // Evento de recebimento de mensagem MQTT
+            // Eventos
             _mqttClient.ApplicationMessageReceivedAsync += async e =>
             {
-                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-
-                var sensorData = new SensorData
+                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+                var sensorData = new MQttIoT.Models.SensorData
                 {
                     Timestamp = DateTime.Now,
                     Topic = e.ApplicationMessage.Topic,
@@ -56,10 +53,10 @@ namespace MQttIoT.Services
             };
 
             var options = new MqttClientOptionsBuilder()
-               .WithClientId($"mqttnet-{Guid.NewGuid():N}")
-               .WithCleanSession()
-               .WithWebSocketServer("wss://broker.hivemq.com:8884/mqtt")
-               .Build();
+                .WithClientId($"mqttnet-{Guid.NewGuid():N}")
+                .WithCleanSession()
+                .WithWebSocketServer(o => o.WithUri("wss://broker.hivemq.com:8884/mqtt"))
+                .Build();
 
             var topic = _configuration["MQTT:Topic"] ?? "api/alertas/novo";
             var subscribeOptions = factory.CreateSubscribeOptionsBuilder()
@@ -79,13 +76,13 @@ namespace MQttIoT.Services
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                     await _mqttClient!.ConnectAsync(options, stoppingToken);
                 }
-                catch { /* tenta novamente no próximo evento */ }
+                catch { /* tenta novamente no pr�ximo evento */ }
             };
 
-            await _mqttClient.ConnectAsync(options, stoppingToken);
+            await _mqttClient.ConnectAsync(options);
         }
 
-        public List<SensorData> GetSensorHistory()
+        public List<MQttIoT.Models.SensorData> GetSensorHistory()
         {
             lock (_historyLock)
                 return _sensorHistory.ToList();

@@ -36,7 +36,7 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Sensor.Id)
+                    @Html.DisplayFor(modelItem => item.Sensor.SensorId)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DataHora)
@@ -45,9 +45,9 @@
                     @Html.DisplayFor(modelItem => item.Valor)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@item.LeituraSensorId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.LeituraSensorId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.LeituraSensorId">Delete</a>
                 </td>
             </tr>
         }

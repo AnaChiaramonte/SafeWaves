@@ -36,7 +36,7 @@ namespace SafeWaves.Controllers
 
             var sensor = await _context.Sensores
                 .Include(s => s.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.SensorId == id);
             if (sensor == null)
             {
                 return NotFound();
@@ -93,7 +93,7 @@ namespace SafeWaves.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Localizacao,EnderecoMac,UsuarioId")] Sensor sensor)
         {
-            if (id != sensor.Id)
+            if (id != sensor.SensorId)
             {
                 return NotFound();
             }
@@ -107,7 +107,7 @@ namespace SafeWaves.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!SensorExists(sensor.Id))
+                    if (!SensorExists(sensor.SensorId))
                     {
                         return NotFound();
                     }
@@ -132,7 +132,7 @@ namespace SafeWaves.Controllers
 
             var sensor = await _context.Sensores
                 .Include(s => s.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.SensorId == id);
             if (sensor == null)
             {
                 return NotFound();
@@ -158,7 +158,7 @@ namespace SafeWaves.Controllers
 
         private bool SensorExists(int id)
         {
-            return _context.Sensores.Any(e => e.Id == id);
+            return _context.Sensores.Any(e => e.SensorId == id);
         }
     }
 }

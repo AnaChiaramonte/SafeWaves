@@ -36,7 +36,7 @@ namespace SafeWaves.Controllers
 
             var zonaSegura = await _context.ZonasSeguras
                 .Include(z => z.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ZonaSeguraId == id);
             if (zonaSegura == null)
             {
                 return NotFound();
@@ -93,7 +93,7 @@ namespace SafeWaves.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Descricao,EZonaDeRisco,UsuarioId")] ZonaSegura zonaSegura)
         {
-            if (id != zonaSegura.Id)
+            if (id != zonaSegura.ZonaSeguraId)
             {
                 return NotFound();
             }
@@ -107,7 +107,7 @@ namespace SafeWaves.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ZonaSeguraExists(zonaSegura.Id))
+                    if (!ZonaSeguraExists(zonaSegura.ZonaSeguraId))
                     {
                         return NotFound();
                     }
@@ -132,7 +132,7 @@ namespace SafeWaves.Controllers
 
             var zonaSegura = await _context.ZonasSeguras
                 .Include(z => z.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ZonaSeguraId == id);
             if (zonaSegura == null)
             {
                 return NotFound();
@@ -158,7 +158,7 @@ namespace SafeWaves.Controllers
 
         private bool ZonaSeguraExists(int id)
         {
-            return _context.ZonasSeguras.Any(e => e.Id == id);
+            return _context.ZonasSeguras.Any(e => e.ZonaSeguraId == id);
         }
     }
 }

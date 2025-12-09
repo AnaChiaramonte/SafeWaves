@@ -40,7 +40,7 @@ namespace SafeWaves.Controllers
 
             var contatoEmergencia = await _context.ContatosEmergencias
                 .Include(c => c.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ContatoEmergenciaId == id);
             if (contatoEmergencia == null)
             {
                 return NotFound();
@@ -97,7 +97,7 @@ namespace SafeWaves.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Telefone,Relacao,UsuarioId")] ContatoEmergencia contatoEmergencia)
         {
-            if (id != contatoEmergencia.Id)
+            if (id != contatoEmergencia.ContatoEmergenciaId)
             {
                 return NotFound();
             }
@@ -111,7 +111,7 @@ namespace SafeWaves.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ContatoEmergenciaExists(contatoEmergencia.Id))
+                    if (!ContatoEmergenciaExists(contatoEmergencia.ContatoEmergenciaId))
                     {
                         return NotFound();
                     }
@@ -136,7 +136,7 @@ namespace SafeWaves.Controllers
 
             var contatoEmergencia = await _context.ContatosEmergencias
                 .Include(c => c.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ContatoEmergenciaId == id);
             if (contatoEmergencia == null)
             {
                 return NotFound();
@@ -162,7 +162,7 @@ namespace SafeWaves.Controllers
 
         private bool ContatoEmergenciaExists(int id)
         {
-            return _context.ContatosEmergencias.Any(e => e.Id == id);
+            return _context.ContatosEmergencias.Any(e => e.ContatoEmergenciaId == id);
         }
     }
 }

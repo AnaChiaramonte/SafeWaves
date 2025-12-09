@@ -48,12 +48,12 @@
                     @Html.DisplayFor(modelItem => item.Relacao)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Usuario.Id)
+                    @Html.DisplayFor(modelItem => item.Usuario.UsuarioId)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@item.ContatoEmergenciaId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ContatoEmergenciaId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ContatoEmergenciaId">Delete</a>
                 </td>
             </tr>
         }
